@@ -1,0 +1,7 @@
+{
+  "bezstavovce": 0,
+  "cicavce": 1,
+  "obojzivelniky": 2,
+  "ostatne": 3,
+  "vtaky": 4
+}
