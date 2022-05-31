@@ -2,7 +2,7 @@ from curses import window
 import sqlite3
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import INSERT, ttk
 from tkcalendar import Calendar, DateEntry
 from tkinter import messagebox, StringVar, IntVar
 from PIL import Image  # pip install pillow
@@ -127,33 +127,38 @@ class SecondPage(tk.Frame):
                 
                 l8 = tk.Label(window, text="Pracovnik:", font=("Arial",15), bg="#e9c46a")
                 l8.place(x=10, y=420)
-                pracovnik = StringVar(window)
-                t8 = tk.OptionMenu(window, pracovnik, *options)
-                t8.place(x = 200, y=420)
+                pracovnik = StringVar()
+                l8 = ttk.Combobox(window, textvariable=pracovnik,values=options)
+                l8.place(x=200, y=420)
 
                 def check():
-                    if t1.get()!="" or cal.get()!="" or druh.get()!="" or t3.get()!="" or t4.get()!="" or t5.get()!="" or t6.get()!="" or druh.get()!="" or pracovnik.get()!='':
+                    print(t1.get(), cal.get())
+                    if t1.get()!="" and cal.get()!="" and druh.get()!="" and t3.get()!="" and t4.get()!="" and t5.get()!="" and t6.get()!="" and druh.get()!="" and pracovnik.get()!='':
                         c.execute(f"SELECT * FROM druhy WHERE nazov='{druh.get()}'")
                         id_druh = c.fetchall()[0][0]
                         meno, priezvisko = pracovnik.get().split()
-                        c.execute(f"SELECT * FROM pracovnici WHERE meno='{meno}' AND priezvisko='{priezvisko}'")
-                        id_prac = c.fetchall()[0][0]
-                        # print(id_prac)
-                        teraz = datetime.datetime.now()
-                        # print(f"INSERT INTO zvierata ('meno', 'druh_id', 'miesto', 'datum_nar', 'potrava', 'frekvencia_strava_hod', 'cistenie_frek_den', 'posl_krm', 'posl_cist', 'id_prac') VALUES ('{t1.get()}', '{id_druh}', '{t7.get()}',  '{cal.get_date()}',  '{t6.get()}',  '{t4.get()}',  '{t5.get()}',  '{teraz}',  '{teraz}',  '{id_prac}')")
-                        c.execute(f"INSERT INTO zvierata ('meno', 'druh_id', 'miesto', 'datum_nar', 'potrava', 'frekvencia_strava_hod', 'cistenie_frek_den', 'posl_krm', 'posl_cist', 'id_prac') VALUES ('{t1.get()}', '{id_druh}', '{t7.get()}',  '{cal.get_date()}',  '{t6.get()}',  '{t4.get()}',  '{t5.get()}',  '{teraz}',  '{teraz}',  '{id_prac}')")
-                        con.commit()
-                        # print(t1.get(),
-                        # druh.get(),
-                        # t4.get(),
-                        # t5.get(),
-                        # t6.get(),
-                        # t7.get(),
-                        # cal.get_date(),
-                        # pracovnik.get()
-                        #         )
-                        messagebox.showinfo("Sucess", "Uspesne pridane do databazy")
-                        window.destroy()
+                        c.execute(f"SELECT * FROM zvierata WHERE meno='{t1.get()}' AND druh_id='{id_druh}'")
+                        if len(c.fetchall()) > 1:
+                                messagebox.showerror("Error", "Taketo zviera uz mame v databaze!",parent=window)
+                        else:
+                            c.execute(f"SELECT * FROM pracovnici WHERE meno='{meno}' AND priezvisko='{priezvisko}'")
+                            id_prac = c.fetchall()[0][0]
+                            # print(id_prac)
+                            teraz = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            # print(f"INSERT INTO zvierata ('meno', 'druh_id', 'miesto', 'datum_nar', 'potrava', 'frekvencia_strava_hod', 'cistenie_frek_den', 'posl_krm', 'posl_cist', 'id_prac') VALUES ('{t1.get()}', '{id_druh}', '{t7.get()}',  '{cal.get_date()}',  '{t6.get()}',  '{t4.get()}',  '{t5.get()}',  '{teraz}',  '{teraz}',  '{id_prac}')")
+                            c.execute(f"INSERT INTO zvierata ('meno', 'druh_id', 'miesto', 'datum_nar', 'potrava', 'frekvencia_strava_hod', 'cistenie_frek_den', 'posl_krm', 'posl_cist', 'id_prac') VALUES ('{t1.get()}', '{id_druh}', '{t7.get()}',  '{cal.get_date()}',  '{t6.get()}',  '{t4.get()}',  '{t5.get()}',  '{teraz}',  '{teraz}',  '{id_prac}')")
+                            con.commit()
+                            # print(t1.get(),
+                            # druh.get(),
+                            # t4.get(),
+                            # t5.get(),
+                            # t6.get(),
+                            # t7.get(),
+                            # cal.get_date(),
+                            # pracovnik.get()
+                            #         )
+                            messagebox.showinfo("Sucess", "Uspesne pridane do databazy")
+                            window.destroy()
                     else:
                         messagebox.showinfo("Error", "Nespravne zadane udaje alebo nezvolena kategoria!")
                         
@@ -213,16 +218,20 @@ class SecondPage(tk.Frame):
                     if t1.get()!="" or t2.get()!="" or t3.get()!="":
                         if t2.get()==t3.get():
                             heslo = str(hashlib.md5(f"b'{t2.get()}'".encode('utf-8')).hexdigest())
-                            c.execute(f"INSERT INTO pracovnici ('meno', 'priezvisko', 'heslo', 'admin') VALUES ('{t1.get()}', '{t12.get()}', '{heslo}', '{var.get()}')")
-                            con.commit()
-                            c.execute(f"select last_insert_rowid()")
-                            id_us = c.fetchall()[0][0]
-                            print(id_us)
-                            print(stara.get())
-                            c.execute(f"UPDATE zvierata SET id_prac='{id_us}' WHERE meno='{stara.get()}'")
-                            con.commit()
-                            messagebox.showinfo("Sucess","Zamestnanec bol uspesne pridany",parent=window)
-                            window.destroy()
+                            c.execute(f"SELECT * FROM pracovnici WHERE meno='{t1.get()}' AND priezvisko='{t12.get()}'")
+                            if len(c.fetchall()) > 1:
+                                messagebox.showerror("Error", "Zamestnanec s takymto menom a priezviskom uz existuje!",parent=window)
+                            else:
+                                c.execute(f"INSERT INTO pracovnici ('meno', 'priezvisko', 'heslo', 'admin') VALUES ('{t1.get()}', '{t12.get()}', '{heslo}', '{var.get()}')")
+                                con.commit()
+                                c.execute(f"select last_insert_rowid()")
+                                id_us = c.fetchall()[0][0]
+                                print(id_us)
+                                print(stara.get())
+                                c.execute(f"UPDATE zvierata SET id_prac='{id_us}' WHERE meno='{stara.get()}'")
+                                con.commit()
+                                messagebox.showinfo("Sucess","Zamestnanec bol uspesne pridany",parent=window)
+                                window.destroy()
                         else:
                             messagebox.showinfo("Error","Hesla sa nezhoduju",parent=window)
                     else:
@@ -239,7 +248,13 @@ class SecondPage(tk.Frame):
         x1 = 365
         y1 = 116
         delta = 43
-        Button = tk.Button(self, text="Moje zvierata", font=("Arial", 8), bg='#bc6c25', command=lambda: controller.show_frame(MojeZvierata))
+
+        def prejdi_na_moje_zver(): #aby najprv vykreslilo customized plochu
+            controller.frames[MojeZvierata].nacitaj()
+            controller.show_frame(MojeZvierata)
+
+
+        Button = tk.Button(self, text="Moje zvierata", font=("Arial", 8), bg='#bc6c25', command=prejdi_na_moje_zver)
         Button.place(x=x1, y=y1)
         y1 += delta
         Button = tk.Button(self, text="Krmenie", font=("Arial", 8), bg='#bc6c25', command=lambda: controller.show_frame(Krmenie))
@@ -248,6 +263,7 @@ class SecondPage(tk.Frame):
         Button = tk.Button(self, text="Cistenie", font=("Arial", 8), bg='#bc6c25', command=lambda: controller.show_frame(Cistenie))
         Button.place(x=x1+15, y=y1)        
         y1 += delta-5
+
         Button = tk.Button(self, text="Zvierata", font=("Arial", 8), bg='#bc6c25', command=lambda: controller.show_frame(Zvierata))
         Button.place(x=x1+15, y=y1)
         y1 += delta-5
@@ -261,12 +277,19 @@ class SecondPage(tk.Frame):
         Button.place(x=x1-15, y=y1)
         y1 += delta-5
 
-        Button = tk.Button(self, text="--Prehlad zamestnancov--", font=("Arial", 8), bg='#283618', fg='white',command=lambda: controller.show_frame(PrehladZamestnancov))
+        def prehlad():
+            if Application.admin:
+                controller.show_frame(PrehladZamestnancov)
+            else:
+                messagebox.showerror("Error", "Na zadanu operaciu nemas prava!")
+
+        Button = tk.Button(self, text="--Prehlad zamestnancov--", font=("Arial", 8), bg='#283618', fg='white',command=prehlad)
         Button.place(x=x1-25, y=y1)        
         y1 += delta-5
 
         Button = tk.Button(self, text="Prihlasenie/ Odhlasenie", font=("Arial", 8), bg='red', command=lambda: controller.show_frame(FirstPage))
         Button.place(x=625, y=10)
+    
 
 class PrehladZamestnancov(tk.Frame):
     def __init__(self, parent, controller):
@@ -285,84 +308,125 @@ class PrehladZamestnancov(tk.Frame):
         t1.place(x=175, y=70)
 
         def hladaj():
-            frame = tk.Frame(self, width=800,height=500, bg="#f4a261")
-            frame.place(x=0,y=100)
-            
-            meno, priezvisko = var.get().split()
-            k = tk.Label(self, text=f"Meno: {meno}\n Priezvisko: {priezvisko}", font=("Arial",15), fg='white', bg="#f4a261")
-            k.place(x=10, y=120)
+            print(Application.uzivatel)
+            print(var.get())
+            if var.get() != '':
+                frame = tk.Frame(self, width=800,height=500, bg="#f4a261")
+                frame.place(x=0,y=100)
+                
+                meno, priezvisko = var.get().split()
+                k = tk.Label(self, text=f"Meno: {meno}\n Priezvisko: {priezvisko}", font=("Arial",15), fg='white', bg="#f4a261")
+                k.place(x=10, y=120)
 
-            c.execute(f"SELECT * FROM pracovnici WHERE meno='{meno}' AND priezvisko='{priezvisko}'")
-            k = c.fetchall()
-            if len(k) == 0:
-                messagebox.showerror('Error', 'Zadany zamestnanec nie je v systeme')
-            else:
-                self.id_us, self.admin = k[0][0], k[0][-1]
-                kzm = tk.Label(self, text=f"Admin: {self.admin}", font=("Arial",15), fg='white', bg="#f4a261")
-                kzm.place(x=10, y=190)
-
-                def zmen_adm():
-                    c.execute(f"UPDATE pracovnici SET admin='{(self.admin+1)%2}' WHERE id='{self.id_us}'")
-                    con.commit()
-                    self.admin = (self.admin+1)%2
+                c.execute(f"SELECT * FROM pracovnici WHERE meno='{meno}' AND priezvisko='{priezvisko}'")
+                k = c.fetchall()
+                if len(k) == 0:
+                    messagebox.showerror('Error', 'Zadany zamestnanec nie je v systeme')
+                else:
+                    self.id_us, self.admin = k[0][0], k[0][-1]
                     kzm = tk.Label(self, text=f"Admin: {self.admin}", font=("Arial",15), fg='white', bg="#f4a261")
                     kzm.place(x=10, y=190)
-                    messagebox.showinfo('Success', 'Hodnota admina bola uspesne zmenena')
 
-                bzm = tk.Button(self, text="Zmen", font=("Arial",10), fg='white', bg="#f4a261", command=zmen_adm)
-                bzm.place(x=130, y=190)
+                    def zmen_adm():
+                        c.execute(f"UPDATE pracovnici SET admin='{(self.admin+1)%2}' WHERE id='{self.id_us}'")
+                        con.commit()
+                        self.admin = (self.admin+1)%2
+                        kzm = tk.Label(self, text=f"Admin: {self.admin}", font=("Arial",15), fg='white', bg="#f4a261")
+                        kzm.place(x=10, y=190)
+                        messagebox.showinfo('Success', 'Hodnota admina bola uspesne zmenena')
 
-                c.execute(f"SELECT * FROM zvierata WHERE id_prac='{self.id_us}'")
+                    bzm = tk.Button(self, text="Zmen", font=("Arial",10), fg='white', bg="#f4a261", command=zmen_adm)
+                    bzm.place(x=130, y=190)
+                    print(self.id_us)
+                    print(Application.admin)
+                    c.execute(f"SELECT * FROM zvierata WHERE id_prac='{self.id_us}'")
 
-                y1 = 120
-                x1 = 300
-                delta = 40
-                stara = {}
-                premenne = ['Potrava', 'Frekvencia podavania stravy (hod)','Cistenie (dni)','Naposledy krmene', 'Naposledy cistene']
-                for zviera in c.fetchall():
-                    stara[zviera[0]] = {}
-                    c.execute(f"SELECT * FROM druhy WHERE id='{zviera[1]}'")
-                    stara[zviera[0]]['Druh'] = c.fetchall()[0][1]
-                    for pop, i in enumerate(zviera[4:-1]):
-                        stara[zviera[0]][premenne[pop]] = i
-
-                def vypis_stara():
-                    y1 = 160
+                    y1 = 120
                     x1 = 300
                     delta = 40
-                    for key in stara[okoho.get()]:
-                        fore = 'white'
-                        if key == 'Naposledy krmene':
-                            if datetime.datetime.now() > (datetime.datetime.strptime(stara[okoho.get()][key], '%Y-%m-%d %H:%M:%S'))+datetime.timedelta(hours=int(stara[okoho.get()]['Frekvencia podavania stravy (hod)'])):
-                                fore = 'red'
-                        if key == 'Naposledy cistene':
-                            if datetime.datetime.now() > (datetime.datetime.strptime(stara[okoho.get()][key], '%Y-%m-%d %H:%M:%S'))+datetime.timedelta(days=int(stara[okoho.get()]['Cistenie (dni)'])):
-                                fore = 'red'
-                        kzm = tk.Label(self, text=f"{key}: {stara[okoho.get()][key]}", font=("Arial",15), fg=fore, bg="#f4a261")
-                        kzm.place(x=x1, y=y1)
-                        y1 += delta
+                    stara = {}
+                    premenne = ['Potrava', 'Frekvencia podavania stravy (hod)','Cistenie (dni)','Naposledy krmene', 'Naposledy cistene']
+                    for zviera in c.fetchall():
+                        stara[zviera[0]] = {}
+                        c.execute(f"SELECT * FROM druhy WHERE id='{zviera[1]}'")
+                        stara[zviera[0]]['Druh'] = c.fetchall()[0][1]
+                        for pop, i in enumerate(zviera[4:-1]):
+                            stara[zviera[0]][premenne[pop]] = i
 
+                    def vypis_stara():
+                        if okoho.get() != '':
+                            y1 = 160
+                            x1 = 300
+                            delta = 40
+                            for key in stara[okoho.get()]:
+                                fore = 'white'
+                                if key == 'Naposledy krmene':
+                                    print(stara[okoho.get()][key])
+                                    if datetime.datetime.now() > (datetime.datetime.strptime(stara[okoho.get()][key], '%Y-%m-%d %H:%M:%S'))+datetime.timedelta(hours=int(stara[okoho.get()]['Frekvencia podavania stravy (hod)'])):
+                                        fore = 'red'
+                                    else:
+                                        fore = 'green'
+                                if key == 'Naposledy cistene':
+                                    if datetime.datetime.now() > (datetime.datetime.strptime(stara[okoho.get()][key], '%Y-%m-%d %H:%M:%S'))+datetime.timedelta(days=int(stara[okoho.get()]['Cistenie (dni)'])):
+                                        fore = 'red'
+                                    else:
+                                        fore = 'green'
+                                kzm = tk.Label(self, text=f"{key}: {stara[okoho.get()][key]}", font=("Arial",15), fg=fore, bg="#f4a261")
+                                kzm.place(x=x1, y=y1)
+                                y1 += delta
 
+                            def odober():
+                                c.execute(f"UPDATE zvierata SET id_prac='0' WHERE meno='{okoho.get()}'")
+                                messagebox.showinfo("Success", f"Zamestnancovi si odobral zviera {okoho.get()}")
+                                hladaj()
+                            Button = tk.Button(self, text="Odober zviera", font=("Arial", 8), bg='red',fg='white', command=odober)
+                            Button.place(x=x1, y=y1)
+                            y1 += delta
+                        else:
+                            messagebox.showerror("Error", "Nezvolene zviera!")
 
-                okoho = StringVar()
-                self.stara_zveri = (list(stara.keys()))
-                t1 = ttk.OptionMenu(self, okoho,*list(stara.keys()))
-                t1.place(x=x1, y=y1)
+                    okoho = StringVar()
+                    self.stara_zveri = (list(stara.keys()))
 
-                bzm = tk.Button(self, text="Detail", font=("Arial",10), fg='white', bg="#f4a261", command=vypis_stara)
-                bzm.place(x=x1+250, y=y1)
+                    t1 = ttk.OptionMenu(self, okoho,*list(stara.keys()))
+                    t1.place(x=x1, y=y1)
 
-                def vyhod():
-                    print(meno)
-                    for odznac in self.stara_zveri:
-                        c.execute(f"UPDATE zvierata SET id_prac='0' WHERE meno='{odznac}'")  
-                    c.execute(f"DELETE FROM pracovnici WHERE meno='{meno}' AND priezvisko='{priezvisko}'")
-                    con.commit()
-                    messagebox.showinfo('Success', 'Zamestnanca sa podarilo uspesne odstranit zo systemu')
-                
-                bzm = tk.Button(self, text="Vyhod", font=("Arial",10), fg='white', bg="#f4a261", command=vyhod)
-                bzm.place(x=400, y=450)
+                    bzm = tk.Button(self, text="Detail", font=("Arial",10), fg='white', bg="#f4a261", command=vypis_stara)
+                    bzm.place(x=x1+250, y=y1)
 
+                    c.execute("SELECT * FROM zvierata WHERE id_prac='0'")
+                    opaa = ['-']
+                    for i in c.fetchall():
+                        opaa.append(i[0])
+                    
+                    l5 = tk.Label(self, text="Pridaj zamestnancovi \n zvieratko:", font=("Arial",15), bg="#f4a261")
+                    l5.place(x=10, y=250)
+                    prid = StringVar()
+                    t5 = tk.OptionMenu(self, prid, *opaa)
+                    t5.place(x = 10, y=310)
+
+                    def pridaj_zv_zm():
+                        c.execute(f"UPDATE zvierata SET id_prac='{self.id_us}' WHERE meno='{prid.get()}'")
+                        con.commit()
+                        messagebox.showinfo("Success", f"Zamestnancovi {meno} {priezvisko} si priradil {prid.get()}")
+                        hladaj()
+                    pridaj = tk.Button(self, text="Pridaj", font=("Arial",10), fg='white', bg="#f4a261", command=pridaj_zv_zm)
+                    pridaj.place(x=10, y=350)
+
+                    def vyhod():
+                        print(meno)
+                        for odznac in self.stara_zveri:
+                            c.execute(f"UPDATE zvierata SET id_prac='0' WHERE meno='{odznac}'")  
+                        c.execute(f"DELETE FROM pracovnici WHERE meno='{meno}' AND priezvisko='{priezvisko}'")
+                        con.commit()
+                        if len(c.fetchall()) > 0: 
+                            messagebox.showinfo('Success', 'Zamestnanca sa podarilo uspesne odstranit zo systemu')
+                        else:
+                            messagebox.showerror('Error', 'Zamestnanca sa nepodarilo odstranit zo systemu (neexistuje alebo nastal problem s databazou)')
+                    bzm = tk.Button(self, text="Vyhod", font=("Arial",10), fg='white', bg="#f4a261", command=vyhod)
+                    bzm.place(x=400, y=450)
+            else:
+                messagebox.showerror("Error", "Nezvoleny zamestnanec")
 
 
         Button = tk.Button(self, text="Hladaj zamestnanca", font=("Arial", 10), command=hladaj)
@@ -378,8 +442,6 @@ class PrehladZamestnancov(tk.Frame):
         # set focus to any widget except a Text widget so focus doesn't get stuck in a Text widget when page hides
         self.wentry.focus_set()
     
-    
-
 
 class Krmenie(tk.Frame):
     def __init__(self, parent, controller):
@@ -408,13 +470,126 @@ class Cistenie(tk.Frame):
 class MojeZvierata(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        
-        self.configure(bg='Tomato')
-        
-        Label = tk.Label(self, text="Moje Zvierata", bg = "orange", font=("Arial Bold", 25))
-        Label.place(x=40, y=150)
-        
+
+        poz = tk.PhotoImage(file = 'sub_bgss.png')
+
+        label = tk.Label(self, image=poz)
+        label.image=poz
+        label.place(x=0,y=0)
+        self.controller = controller
         Button = tk.Button(self, text="Home", font=("Arial", 15), command=lambda: controller.show_frame(SecondPage))
+        Button.place(x=650, y=450)
+
+    def nakrm(self,ktore):
+        c.execute(f'UPDATE zvierata SET posl_krm=\'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\' WHERE meno=\'{ktore}\'')
+        messagebox.showinfo("Success", f'Nakrmil si {ktore}')
+        self.nacitaj()
+
+    def vycisti(self,ktore):
+        c.execute(f'UPDATE zvierata SET posl_cist=\'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\' WHERE meno=\'{ktore}\'')
+        messagebox.showinfo("Success", f'Vycistil si klietku pre {ktore}')
+        self.nacitaj()
+
+    def nacitaj(self):
+        poz = tk.PhotoImage(file = 'sub_bgss.png')
+
+        label = tk.Label(self, image=poz)
+        label.image=poz
+        label.place(x=0,y=0)
+
+        Label = tk.Label(self, text=f" Zvierata pouzivatela {Application.uzivatel} ", bg = "#283618", bd=10,fg='#bc6c25',font=("Gulim", 25))
+        
+        Label.place(x=150, y=20)
+        
+        c.execute(f"SELECT * FROM zvierata, druhy WHERE druhy.id = zvierata.druh_id AND id_prac='{Application.idu}'")
+        x1 = 5
+        y1 = 100
+        deltay = 30
+        deltax = 100
+        self.buttons = []
+        for zviera in c.fetchall():
+            print(zviera)
+            col_poz_descr = '#606c38' #farba pozadia na mena stlpcov tabulky
+            text_poz_descr = '#e9c46a' #farba textu mena stlpcov
+            col_poz_data = '#d4a373' # farba na jednotlive stlpce tabulky
+            text_poz_data = '#faedcd' # farba textu dat
+            col_zv = '#d4a373' # farba na zviera
+            text_zv = '#faedcd' #farba textu zveri
+
+            frame = tk.Frame(self, width=800,height=105, bg="#fefae0")
+            frame.place(x=0,y=y1-5)
+
+            Label = tk.Label(self, text=f"{ zviera[0]}",width=21, bg = col_zv, font=('Gulim', 15),fg=text_zv)
+            Label.place(x=x1, y=y1)
+            x1 += 10
+            y1 += deltay+10
+
+            Label = tk.Label(self, text=f"DRUH",width=11, bg = col_poz_descr, font=("Arial Bold", 10), fg=text_poz_descr)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax+10
+
+            Label = tk.Label(self, text=f"POTRAVA", width=11,bg = col_poz_descr, font=("Arial Bold", 10), fg=text_poz_descr)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax+10
+
+            Label = tk.Label(self, text=f"krm.(hod)", width=8, bg = col_poz_descr, font=("Arial Bold", 10), fg=text_poz_descr)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax-20
+
+            Label = tk.Label(self, text=f"cist(dni)", width=8,bg = col_poz_descr, font=("Arial Bold", 10), fg=text_poz_descr)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax-20
+    
+            Label = tk.Label(self, text=f"Naposledy krm.",bg=col_poz_descr, width=24, font=("Arial Bold", 10), fg=text_poz_descr)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax+130
+
+            Label = tk.Label(self, text=f"Naposledy cist.",bg=col_poz_descr, width=18, fg=text_poz_descr, font=("Arial Bold", 10))
+            Label.place(x=x1+2, y=y1)
+            x1 += 115
+            y1 += deltay
+            x1 = 15
+            Label = tk.Label(self, text=f"{zviera[-1]}",width=11, bg = col_poz_data, font=("Arial Bold", 10), fg=text_poz_data)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax+10
+
+            Label = tk.Label(self, text=f"{zviera[4]}", width=11,bg = col_poz_data, font=("Arial Bold", 10), fg=text_poz_data)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax+10
+
+            Label = tk.Label(self, text=f"{ zviera[5] }", width=8, bg = col_poz_data, font=("Arial Bold", 10), fg=text_poz_data)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax-20
+
+            Label = tk.Label(self, text=f"{ zviera[6] }", width=8,bg = col_poz_data, font=("Arial Bold", 10), fg=text_poz_data)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax-20
+            if datetime.datetime.now() > (datetime.datetime.strptime(zviera[7], '%Y-%m-%d %H:%M:%S'))+datetime.timedelta(hours=int(zviera[5])):
+                fore = 'red'
+            else:
+                fore = 'green'
+            Label = tk.Label(self, text=f"{ zviera[7] }", width=18, bg = fore, font=("Arial Bold", 10),fg=text_poz_data)
+            Label.place(x=x1+2, y=y1)
+            x1 += deltax+75
+
+            self.buttons.append(tk.Button(self, text="Nakrm", font=("Arial", 9), fg=text_poz_data, bd=0,padx=1,pady=1, bg='green', command=lambda i=zviera[0]: self.nakrm(i)))
+            self.buttons[-1].place(x=x1-2, y=y1)
+            x1 += 55
+
+            if datetime.datetime.now() > (datetime.datetime.strptime(zviera[8], '%Y-%m-%d %H:%M:%S'))+datetime.timedelta(hours=int(zviera[6])):
+                fore = 'red'
+            else:
+                fore = 'green'
+            Label = tk.Label(self, text=f"{ zviera[8][:-9] }", width=11,bg = fore, fg=text_poz_data, font=("Arial Bold", 10))
+            Label.place(x=x1+2, y=y1)
+            x1 += 118
+
+            self.buttons.append(tk.Button(self, text="Vycisti", font=("Arial", 9), fg=text_poz_data,bd=0,padx=1,pady=1, bg='green', command=lambda i=zviera[0]: self.vycisti(i)))
+            self.buttons[-1].place(x=x1, y=y1)
+            x1 = 5
+            y1 += deltay+20
+
+        Button = tk.Button(self, text="Menu", font=("Arial", 15), bg='#283618', command=lambda: self.controller.show_frame(SecondPage))
         Button.place(x=650, y=450)
 
 class Zvierata(tk.Frame):

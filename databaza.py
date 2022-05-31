@@ -30,7 +30,6 @@ c.execute("""CREATE TABLE pracovnici(
     priezvisko text,
     heslo text,
     admin integer
-
 )
 """)
 
