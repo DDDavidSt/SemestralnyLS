@@ -48,7 +48,7 @@ with open('zamestnanci.txt') as f:
         heslo = str(hashlib.md5(f"b'{heslo}'".encode('utf-8')).hexdigest())
         c.execute(f"INSERT INTO 'pracovnici' ('meno', 'priezvisko', 'heslo', 'admin') VALUES ('{meno}','{priezvisko}','{heslo}','0')")
         k += 1
-
+c.execute("UPDATE pracovnici SET admin='1' WHERE meno='admin'")
 con.commit()
 ###KONIEC
 

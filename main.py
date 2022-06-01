@@ -47,10 +47,13 @@ class FirstPage(tk.Frame):
                 Application.uzivatel = T1.get()
                 Application.idu = k[0][0]
                 Application.admin = int(k[0][-1])
+                print(Application.admin)
                 if Application.admin:
+                    controller.frames[SecondPage].zobraz_bezny()
                     controller.frames[SecondPage].zobraz_admin()
                     controller.show_frame(SecondPage)
                 else:
+                    controller.frames[SecondPage].zobraz_bezny()
                     controller.show_frame(SecondPage)
 
             else:
@@ -63,6 +66,7 @@ class FirstPage(tk.Frame):
         def odhlas():
             if Application.uzivatel != '':
                 Application.uzivatel = ''
+                Application.admin = 0
                 T1.delete(0,'end')
                 T2.delete(0, 'end')                
                 messagebox.showinfo("Sucess", "Boli ste odhlaseny")
@@ -81,190 +85,60 @@ class SecondPage(tk.Frame):
         label.image=poz
         label.place(x=0,y=0)
         self.controller = controller
-        def pridaj_zv():
-            if Application.admin:
-                window = tk.Tk()
-                window.configure(bg="#e9c46a")
-                window.title("Pridaj zviera")
-                l1 = tk.Label(window, text="Nazov:", font=("Arial",15), bg="#e9c46a")
-                l1.place(x=10, y=10)
-                t1 = tk.Entry(window, width=30, bd=5)
-                t1.place(x = 200, y=10)
+        
+        # x1 = 365
+        # y1 = 116
+        # delta = 43
 
-                c.execute("SELECT * FROM druhy")
-                options = [i[1] for i in c.fetchall()]
-                
-                l3 = tk.Label(window, text="Druh:", font=("Arial",15), bg="#e9c46a")
-                l3.place(x=10, y=60)
-                druh = StringVar(window)
-                t3 = tk.OptionMenu(window, druh, *options)
-                t3.place(x = 200, y=60)
+        # def prejdi_na_moje_zver(): #aby najprv vykreslilo customized plochu
+        #     controller.frames[MojeZvierata].nacitaj()
+        #     controller.show_frame(MojeZvierata)
 
-                l2 = tk.Label(window, text="Datum narodenia:", font=("Arial",13), bg="#e9c46a")
-                l2.place(x=10, y=120)
-                cal = DateEntry(window, width=12, year=2019, month=6, day=22, 
-                    background='darkblue', foreground='white', borderwidth=2)
-                cal.pack(padx=200, pady=120)
+        # def prejdi_na_krm(): #aby najprv vykreslilo customized plochu
+        #     controller.frames[Krmenie].nacitaj()
+        #     controller.show_frame(Krmenie)
 
-                            
-                l4 = tk.Label(window, text="Frekvencia krmenia(hod):", font=("Arial",10), bg="#e9c46a")
-                l4.place(x=10, y=180)
-                t4 = tk.Entry(window, width=30, bd=5)
-                t4.place(x = 200, y=180)
+        # def prejdi_na_cist(): #aby najprv vykreslilo customized plochu
+        #     controller.frames[Cistenie].nacitaj()
+        #     controller.show_frame(Cistenie)
 
-                l5 = tk.Label(window, text="Frekvencia cistenia(dni):", font=("Arial",10), bg="#e9c46a")
-                l5.place(x=10, y=240)
-                t5 = tk.Entry(window, width=30, bd=5)
-                t5.place(x = 200, y=240)
 
-                l6 = tk.Label(window, text="Potrava:", font=("Arial",15), bg="#e9c46a")
-                l6.place(x=10, y=300)
-                t6 = tk.Entry(window, width=30, bd=5)
-                t6.place(x = 200, y=300)
-                
-                l7 = tk.Label(window, text="Miesto povodu:", font=("Arial",13), bg="#e9c46a")
-                l7.place(x=10, y=360)
-                t7 = tk.Entry(window, width=30, bd=5)
-                t7.place(x = 200, y=360)
-                
-                c.execute("SELECT * FROM pracovnici")
-                options = [i[1]+' '+i[2] for i in c.fetchall()]
-                
-                l8 = tk.Label(window, text="Pracovnik:", font=("Arial",15), bg="#e9c46a")
-                l8.place(x=10, y=420)
-                pracovnik = StringVar(window)
-                t8 = ttk.Combobox(window, textvariable=pracovnik,values=options)
-                t8.place(x=200, y=420)
 
-                def check():
-                    print(t1.get(), cal.get(), druh.get(),t4.get(), t5.get(), t6.get(), druh.get(), pracovnik.get())
-                    if t1.get()!="" and cal.get()!="" and druh.get()!=""  and t4.get()!="" and t5.get()!="" and t6.get()!="" and druh.get()!="" and pracovnik.get()!='':
-                        c.execute(f"SELECT * FROM druhy WHERE nazov='{druh.get()}'")
-                        id_druh = c.fetchall()[0][0]
-                        meno, priezvisko = pracovnik.get().split()
-                        c.execute(f"SELECT * FROM zvierata WHERE meno='{t1.get()}' AND druh_id='{id_druh}'")
-                        if len(c.fetchall()) > 1:
-                                messagebox.showerror("Error", "Taketo zviera uz mame v databaze!",parent=window)
-                        else:
-                            c.execute(f"SELECT * FROM pracovnici WHERE meno='{meno}' AND priezvisko='{priezvisko}'")
-                            id_prac = c.fetchall()[0][0]
-                            # print(id_prac)
-                            teraz = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            # print(f"INSERT INTO zvierata ('meno', 'druh_id', 'miesto', 'datum_nar', 'potrava', 'frekvencia_strava_hod', 'cistenie_frek_den', 'posl_krm', 'posl_cist', 'id_prac') VALUES ('{t1.get()}', '{id_druh}', '{t7.get()}',  '{cal.get_date()}',  '{t6.get()}',  '{t4.get()}',  '{t5.get()}',  '{teraz}',  '{teraz}',  '{id_prac}')")
-                            c.execute(f"INSERT INTO zvierata ('meno', 'druh_id', 'miesto', 'datum_nar', 'potrava', 'frekvencia_strava_hod', 'cistenie_frek_den', 'posl_krm', 'posl_cist', 'id_prac') VALUES ('{t1.get()}', '{id_druh}', '{t7.get()}',  '{cal.get_date()}',  '{t6.get()}',  '{t4.get()}',  '{t5.get()}',  '{teraz}',  '{teraz}',  '{id_prac}')")
-                            con.commit()
-                            # print(t1.get(),
-                            # druh.get(),
-                            # t4.get(),
-                            # t5.get(),
-                            # t6.get(),
-                            # t7.get(),
-                            # cal.get_date(),
-                            # pracovnik.get()
-                            #         )
-                            messagebox.showinfo("Sucess", "Uspesne pridane do databazy")
-                            window.destroy()
-                    else:
-                        messagebox.showinfo("Error", "Nespravne zadane udaje alebo nezvolena kategoria!")
-                        
-                b1 = tk.Button(window, text="Pridaj", font=("Arial",15), bg="#ffc22a", command=check)
-                b1.place(x=170, y=500)
-                
-                window.geometry("500x550")
-                window.mainloop()
-            else:
-                messagebox.showinfo("Error", "Na takuto operaciu potrebujes administratorske prava!")
+        # Button = tk.Button(self, text="Moje zvierata", font=("Arial", 8), bg='#bc6c25', command=prejdi_na_moje_zver)
+        # Button.place(x=x1, y=y1)
+        # y1 += delta
+        # Button = tk.Button(self, text="Krmenie", font=("Arial", 8), bg='#bc6c25', command=prejdi_na_krm)
+        # Button.place(x=x1+15, y=y1)
+        # y1 += delta-5
+        # Button = tk.Button(self, text="Cistenie", font=("Arial", 8), bg='#bc6c25', command=prejdi_na_cist)
+        # Button.place(x=x1+15, y=y1)        
+        # y1 += delta-5
+        # print(y1)
 
-        def pridaj_zam():
-            if Application.admin:
-                window = tk.Toplevel()
-                window.resizable(0,0)
-                window.configure(bg="deep sky blue")
-                window.title("Pridaj zamestanca")
-                l1 = tk.Label(window, text="Meno:", font=("Arial",15), bg="deep sky blue")
-                l1.place(x=10, y=10)
-                t1 = tk.Entry(window, width=30, bd=5)
-                t1.place(x = 200, y=10)
+        Button = tk.Button(self, text="Prihlasenie/ Odhlasenie", font=("Arial", 8), bg='red', command=lambda: controller.show_frame(FirstPage))
+        Button.place(x=625, y=10)
 
-                l12 = tk.Label(window, text="Priezvisko:", font=("Arial",15), bg="deep sky blue")
-                l12.place(x=10, y=60)
-                t12 = tk.Entry(window, width=30, bd=5)
-                t12.place(x = 200, y=60)
-                
-                l2 = tk.Label(window, text="Heslo:", font=("Arial",15), bg="deep sky blue")
-                l2.place(x=10, y=110)
-                t2 = tk.Entry(window, width=30, show="*", bd=5)
-                t2.place(x = 200, y=110)
-                
-                l3 = tk.Label(window, text="Heslo znovu:", font=("Arial",15), bg="deep sky blue")
-                l3.place(x=10, y=160)
-                t3 = tk.Entry(window, width=30, show="*", bd=5)
-                t3.place(x = 200, y=160)
-                
-                c.execute("SELECT * FROM zvierata WHERE id_prac='0'")
-                opaa = ['-']
-                for i in c.fetchall():
-                    opaa.append(i[0])
-                
-                l5 = tk.Label(window, text="zvieratko:", font=("Arial",15), bg="#e9c46a")
-                l5.place(x=10, y=210)
-                stara = StringVar(window)
-                t5 = tk.OptionMenu(window, stara, *opaa)
-                t5.place(x = 200, y=210)
+    def zobraz_bezny(self):
+        poz = tk.PhotoImage(file = 'menu_bgss.png')
 
-                l4 = tk.Label(window, text="Prava admina:")
-                var = IntVar()
-                t4 = tk.Checkbutton(window, text="Ano", variable=var)
-                t4.place(x=325, y=270)
-                l4.place(x=200,y=270)
-                
-
-                def check():
-                    if t1.get()!="" or t2.get()!="" or t3.get()!="":
-                        if t2.get()==t3.get():
-                            heslo = str(hashlib.md5(f"b'{t2.get()}'".encode('utf-8')).hexdigest())
-                            c.execute(f"SELECT * FROM pracovnici WHERE meno='{t1.get()}' AND priezvisko='{t12.get()}'")
-                            if len(c.fetchall()) > 1:
-                                messagebox.showerror("Error", "Zamestnanec s takymto menom a priezviskom uz existuje!",parent=window)
-                            else:
-                                c.execute(f"INSERT INTO pracovnici ('meno', 'priezvisko', 'heslo', 'admin') VALUES ('{t1.get()}', '{t12.get()}', '{heslo}', '{var.get()}')")
-                                con.commit()
-                                c.execute(f"select last_insert_rowid()")
-                                id_us = c.fetchall()[0][0]
-                                print(id_us)
-                                print(stara.get())
-                                c.execute(f"UPDATE zvierata SET id_prac='{id_us}' WHERE meno='{stara.get()}'")
-                                con.commit()
-                                messagebox.showinfo("Sucess","Zamestnanec bol uspesne pridany",parent=window)
-                                window.destroy()
-                        else:
-                            messagebox.showinfo("Error","Hesla sa nezhoduju",parent=window)
-                    else:
-                        messagebox.showinfo("Error", "Nespravne vyplneny formular",parent=window)
-                
-                b1 = tk.Button(window, text="Pridaj", font=("Arial",15), bg="#ffc22a", command=check)
-                b1.place(x=170, y=300)
-                
-                window.geometry("470x350")
-                window.mainloop()
-            else:
-                messagebox.showinfo("Error", "Nemas administratorske prava!")
-
+        label = tk.Label(self, image=poz)
+        label.image=poz
+        label.place(x=0,y=0)
         x1 = 365
         y1 = 116
         delta = 43
 
         def prejdi_na_moje_zver(): #aby najprv vykreslilo customized plochu
-            controller.frames[MojeZvierata].nacitaj()
-            controller.show_frame(MojeZvierata)
+            self.controller.frames[MojeZvierata].nacitaj()
+            self.controller.show_frame(MojeZvierata)
 
         def prejdi_na_krm(): #aby najprv vykreslilo customized plochu
-            controller.frames[Krmenie].nacitaj()
-            controller.show_frame(Krmenie)
+            self.controller.frames[Krmenie].nacitaj()
+            self.controller.show_frame(Krmenie)
 
         def prejdi_na_cist(): #aby najprv vykreslilo customized plochu
-            controller.frames[Cistenie].nacitaj()
-            controller.show_frame(Cistenie)
+            self.controller.frames[Cistenie].nacitaj()
+            self.controller.show_frame(Cistenie)
 
         Button = tk.Button(self, text="Moje zvierata", font=("Arial", 8), bg='#bc6c25', command=prejdi_na_moje_zver)
         Button.place(x=x1, y=y1)
@@ -276,38 +150,12 @@ class SecondPage(tk.Frame):
         Button.place(x=x1+15, y=y1)        
         y1 += delta-5
         print(y1)
-        # def zver():
-        #     if Application.admin:
-        #         controller.show_frame(Zvierata)
-        #     else:
-        #         messagebox.showerror("Error", "Na zadanu operaciu nemas prava!")
-        # Button = tk.Button(self, text="--Zvierata--", font=("Arial", 8), bg='#283618',fg='white', command=zver)
-        # Button.place(x=x1+5, y=y1)
-        # y1 += delta-5
-        # x1 -= 10
 
-        # Button = tk.Button(self, text="--Pridaj zviera--", font=("Arial", 8), bg='#283618',fg='white', command=pridaj_zv)
-        # Button.place(x=x1, y=y1)
-        # y1 += delta
-
-        # Button = tk.Button(self, text="--Pridaj zamestnanca--", font=("Arial", 8),  bg='#283618', fg='white',command=pridaj_zam)
-        # Button.place(x=x1-15, y=y1)
-        # y1 += delta-5
-
-        # def prehlad():
-        #     if Application.admin:
-        #         controller.show_frame(PrehladZamestnancov)
-        #     else:
-        #         messagebox.showerror("Error", "Na zadanu operaciu nemas prava!")
-
-
-        # Button = tk.Button(self, text="--Prehlad zamestnancov--", font=("Arial", 8), bg='#283618', fg='white',command=prehlad)
-        # Button.place(x=x1-25, y=y1)        
-        # y1 += delta-5
-
-        Button = tk.Button(self, text="Prihlasenie/ Odhlasenie", font=("Arial", 8), bg='red', command=lambda: controller.show_frame(FirstPage))
+        Button = tk.Button(self, text="Prihlasenie/ Odhlasenie", font=("Arial", 8), bg='red', command=lambda: self.controller.show_frame(FirstPage))
         Button.place(x=625, y=10)
+
     def zobraz_admin(self):
+
         y1 = 235
         x1 = 365
         delta = 43
@@ -498,14 +346,15 @@ class SecondPage(tk.Frame):
         Button.place(x=x1-15, y=y1)
         y1 += delta-5
 
-        def prehlad():
+        def prejdi_na_prehlad(): #aby najprv vykreslilo customized plochu
             if Application.admin:
+                self.controller.frames[PrehladZamestnancov].nacitaj()
                 self.controller.show_frame(PrehladZamestnancov)
             else:
                 messagebox.showerror("Error", "Na zadanu operaciu nemas prava!")
 
 
-        Button = tk.Button(self, text="--Prehlad zamestnancov--", font=("Arial", 8), bg='#283618', fg='white',command=prehlad)
+        Button = tk.Button(self, text="--Prehlad zamestnancov--", font=("Arial", 8), bg='#283618', fg='white',command=prejdi_na_prehlad)
         Button.place(x=x1-25, y=y1)        
         y1 += delta-5
 
@@ -521,22 +370,15 @@ class PrehladZamestnancov(tk.Frame):
         Button = tk.Button(self, text="Menu", font=("Arial", 8), bg='#283618',fg='white', command=lambda: controller.show_frame(SecondPage))
         Button.place(x=700, y=10)
 
-        l1 = tk.Label(self, text="Zamestnanec", font=("Arial",15), fg='white', bg="#f4a261")
-        l1.place(x=10, y=65)
-        var = StringVar()
-        c.execute("SELECT * FROM pracovnici")
-        options = [i[1]+' '+i[2] for i in c.fetchall()]
-        t1 = ttk.Combobox(self, textvariable=var,values=options)
-        t1.place(x=175, y=70)
 
         def hladaj():
             print(Application.uzivatel)
-            print(var.get())
-            if var.get() != '':
+            print(self.var.get())
+            if self.var.get() != '':
                 frame = tk.Frame(self, width=800,height=500, bg="#f4a261")
                 frame.place(x=0,y=100)
                 
-                meno, priezvisko = var.get().split()
+                meno, priezvisko = self.var.get().split()
                 k = tk.Label(self, text=f"Meno: {meno}\n Priezvisko: {priezvisko}", font=("Arial",15), fg='white', bg="#f4a261")
                 k.place(x=10, y=120)
 
@@ -565,7 +407,7 @@ class PrehladZamestnancov(tk.Frame):
 
                     y1 = 120
                     x1 = 300
-                    delta = 40
+
                     stara = {}
                     premenne = ['Potrava', 'Frekvencia podavania stravy (hod)','Cistenie (dni)','Naposledy krmene', 'Naposledy cistene']
                     for zviera in c.fetchall():
@@ -654,16 +496,15 @@ class PrehladZamestnancov(tk.Frame):
         Button = tk.Button(self, text="Hladaj zamestnanca", font=("Arial", 10), command=hladaj)
         Button.place(x=400, y=65)
 
-    def restart(self):
-        self.refresh()
-        self.controller.show_frame(PrehladZamestnancov)
+    def nacitaj(self):
+        l1 = tk.Label(self, text="Zamestnanec", font=("Arial",15), fg='white', bg="#f4a261")
+        l1.place(x=10, y=65)
+        self.var = StringVar()
+        c.execute("SELECT * FROM pracovnici")
+        options = [i[1]+' '+i[2] for i in c.fetchall()]
+        t1 = ttk.Combobox(self, textvariable=self.var,values=options)
+        t1.place(x=175, y=70)
 
-    def refresh(self):
-        self.wentry.delete(0, "end")
-        self.text.delete("1.0", "end")
-        # set focus to any widget except a Text widget so focus doesn't get stuck in a Text widget when page hides
-        self.wentry.focus_set()
-    
 
 class Krmenie(tk.Frame):
     def __init__(self, parent, controller):
