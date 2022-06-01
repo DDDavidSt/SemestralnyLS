@@ -2,6 +2,9 @@ import sqlite3
 
 
 import sqlite3
+
+#just a checking program
+
 con = sqlite3.connect('zoo.db')
 
 c = con.cursor()
