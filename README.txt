@@ -1,3 +1,7 @@
+libraries = sqlite3, hashlib (to hash passwords with MD5), json(turned out to be useless), datetime, random,calendar, curses, tkinter
+tcalendar, PIL
+
+
 You need to run the file 'databaza.py' to create a random database with names and animals. (if already exists needs to be removed first)
 User 'admin' with password 'admin' has admin privileges meaning they can add new employees or sack them, add/remove animals
 Other users can just view their animals and a two list of duties (feeding and cleaning)
